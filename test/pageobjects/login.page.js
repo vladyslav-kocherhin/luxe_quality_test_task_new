@@ -77,11 +77,64 @@ class LoginPage extends Page {
         return $('option[value="hilo"]');
     }
 
+    get facebookLink() {
+        return $('a[href="https://www.facebook.com/saucelabs"]');
+    }
+
+    get twitterLink() {
+        return $('a[href="https://twitter.com/saucelabs"]');
+    }
+
+    get linkedinLink() {
+        return $('a[href="https://www.linkedin.com/company/sauce-labs/"]'); 
+    }
+
+    get checkoutButton() {
+        return $('#checkout');
+    }
+
+    get firstNameCheckoutField() {
+        return $('#first-name');
+    }
+
+    get lastNameCheckoutField() {
+        return $('#last-name'); 
+    }
+
+    get postalCodeCheckoutField() {
+        return $('#postal-code');
+    }
+
+    get continueCheckoutButton() {
+        return $('#continue');
+    }
+
+    get finishCheckoutButton() {
+        return $('#finish');
+    }
+
+    get backToHomeButton() {
+        return $('#back-to-products');
+    }
+
+    get checkoutForm() {
+        return $('.checkout_info');
+    }
+
+    get removeFromCartButton() {
+        return $('#remove-sauce-labs-backpack');
+    }
+
+    get checkoutCompleteContainer() {
+        return $('.checkout_complete_container');
+    }
+
     async login(username, password) {
         await this.inputUsername.setValue(username);
         await this.inputPassword.setValue(password);
         await this.btnSubmit.click();
     }
+
 
     /**
      * overwrite specific options to adapt it to page object
