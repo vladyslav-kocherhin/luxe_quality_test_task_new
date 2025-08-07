@@ -148,6 +148,8 @@ describe('Valid Login', () => {
 
         await expect(LoginPage.cartItem).toBeExisting();
 
+        await LoginPage.removeFromCartButton.click();
+
     });
 
 
@@ -250,5 +252,125 @@ it('Sorting: Price high to low', async () => {
     
 });
 
+it('Footer Links', async () => {
+    await LoginPage.open();
+    await LoginPage.login('standard_user', 'secret_sauce');
+
+    const originalWindow = await browser.getWindowHandle();
+    await LoginPage.facebookLink.click();
+
+    await browser.waitUntil(async () => {
+        const handles = await browser.getWindowHandles();
+        return handles.length > 1;
+    }, {
+        timeout: 2000,
+        timeoutMsg: 'Facebook tab did not open'});
+
+    const windowHandles = await browser.getWindowHandles();
+    expect(windowHandles.length).toBeGreaterThan(1);
+
+    const newWindowHandle = windowHandles.find(handle => handle !== originalWindow);
+    await browser.switchToWindow(newWindowHandle);
+
+    const newTabUrl = await browser.getUrl();
+    expect(newTabUrl).toContain('https://www.facebook.com/saucelabs');
+
+    await browser.closeWindow();
+    await browser.switchToWindow(originalWindow);
+
+    await LoginPage.twitterLink.click();
+
+    await browser.waitUntil(async () => {
+        const handles = await browser.getWindowHandles();
+        return handles.length > 1;
+    }, {
+        timeout: 2000,
+        timeoutMsg: 'Twitter tab did not open'});
+
+    handles = await browser.getWindowHandles();
+    newTab = handles.find(handle => handle !== originalWindow);
+    await browser.switchToWindow(newTab);
+
+    url = await browser.getUrl();
+    expect(url).toContain('https://x.com/saucelabs');
+
+    await browser.closeWindow();
+    await browser.switchToWindow(originalWindow);
+
+    await LoginPage.linkedinLink.click();
+
+    await browser.waitUntil(async () => {
+        const handles = await browser.getWindowHandles();
+        return handles.length > 1;
+    }, {
+        timeout: 2000,
+        timeoutMsg: 'LinkedIn tab did not open'});
+
+    handles = await browser.getWindowHandles();
+    newTab = handles.find(handle => handle !== originalWindow);
+    await browser.switchToWindow(newTab);
+
+    url = await browser.getUrl();
+    expect(url).toContain('https://www.linkedin.com/company/sauce-labs/');
+
+});
+
+it('Valid Checkout with Tax', async () => {
+
+    await LoginPage.open();
+    await LoginPage.login('standard_user', 'secret_sauce');
+
+    const addToCartButtons = await $$('button.btn_inventory');
+    await addToCartButtons[0].click();
+
+    await expect(LoginPage.shoppingСartBadge).toBeExisting();
+    await expect(LoginPage.shoppingСartBadge).toHaveText('1');
+
+    await LoginPage.shopingCartIcon.click();
+    await expect(LoginPage.cartItem).toBeExisting();
+
+    const cartItemPriceText = await LoginPage.cartItem.$('.inventory_item_price').getText();
+    const cartItemPrice = parseFloat(cartItemPriceText.replace('$', ''));
+
+    await LoginPage.checkoutButton.click();
+    await expect(LoginPage.checkoutForm).toBeExisting();
+
+    await LoginPage.firstNameCheckoutField.setValue('Vladyslav');
+    await LoginPage.lastNameCheckoutField.setValue('Kocherhin');
+    await LoginPage.postalCodeCheckoutField.setValue('12345');
+
+    await expect(LoginPage.firstNameCheckoutField).toHaveValue('Vladyslav');
+    await expect(LoginPage.lastNameCheckoutField).toHaveValue('Kocherhin');
+    await expect(LoginPage.postalCodeCheckoutField).toHaveValue('12345');
+
+    await LoginPage.continueCheckoutButton.click();
+    await expect(browser).toHaveUrl('https://www.saucedemo.com/checkout-step-two.html');
+
+    const overviewItem = await $('div.cart_item');
+    expect(await overviewItem.isExisting()).toBe(true);
+
+    const overviewItemPriceText = await overviewItem.$('.inventory_item_price').getText();
+    const overviewItemPrice = parseFloat(overviewItemPriceText.replace('$', ''));
+    expect(overviewItemPrice).toBeCloseTo(cartItemPrice, 2);
+
+    const summaryTotalText = await $('.summary_total_label').getText();
+    const totalPrice = parseFloat(summaryTotalText.replace('Total: $', ''));
+
+    const tax = 2.40;
+    const expectedTotal = parseFloat((cartItemPrice + tax).toFixed(2));
+
+    expect(totalPrice).toBeCloseTo(expectedTotal, 2);
+
+    await LoginPage.finishCheckoutButton.click();
+    await expect(browser).toHaveUrl('https://www.saucedemo.com/checkout-complete.html');
+    const completeText = await LoginPage.checkoutCompleteContainer.getText();
+        expect(completeText).toContain('Thank you for your order!');
+
+    await LoginPage.backToHomeButton.click();
+    await expect(browser).toHaveUrl('https://www.saucedemo.com/inventory.html');
+    await expect(LoginPage.productsList).toBeExisting();
+    await expect(LoginPage.shoppingСartBadge).not.toBeExisting();
+
+});
 
 })
